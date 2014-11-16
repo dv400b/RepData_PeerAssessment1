@@ -10,8 +10,8 @@ output:
 
 
 ```r
-library(xts)            # use the xts package, which facilitates time series
 library(plyr)           # use the plyr package to efficiently summarize by group 
+library(xts)            # use the xts package, which facilitates time series
 df.activity      <- read.csv("activity.csv")
 df.activity$hour <- df.activity$interval %/% 100  # extract hour from interval 
 df.activity$min  <- df.activity$interval %%  100  # extract minute from interval
@@ -31,9 +31,21 @@ hist(Tstepsdaily, main='Daily steps taken', xlab='Steps', breaks=10)
 
 ![plot of chunk part2](figure/part2-1.png) 
 
-* The **mean** number of daily steps taken is **9354.23**
+```r
+print(paste0("The mean number of daily steps taken is ", round(mean(Tstepsdaily),2)))
+```
 
-* The **median** is **10395**.
+```
+## [1] "The mean number of daily steps taken is 9354.23"
+```
+
+```r
+print(paste0("The median number of daily steps taken is ", median(Tstepsdaily)))
+```
+
+```
+## [1] "The median number of daily steps taken is 10395"
+```
 
 ## 3) What is the average daily activity pattern?
 
@@ -49,20 +61,46 @@ plot.xts(Ttimeavg, major.format="%H:%M", main="Average steps by time of day")
 
 ![plot of chunk part3](figure/part3-1.png) 
 
-* On average across all days in the dataset, the **peak 5-minute interval** is the one
-beginning at **08:35**.
+```r
+print(paste0("The peak 5-minute interval is the one beginning at ",
+             substr(index(Ttimeavg)[order(Ttimeavg, decreasing=TRUE)[1]], 
+                    12, 16)))
+```
+
+```
+## [1] "The peak 5-minute interval is the one beginning at 08:35"
+```
 
 ## 4) Imputing missing values
 
-* The total number of **missing step values** in the dataset is 
-**2304** (which is
-**13.11%** of the total.)
 
-* The dataset contains 61 days of data.  
+```r
+print(paste0("The total number of missing step values is:  ",
+             sum(is.na(df.activity$steps))))
+```
 
-* Only
-8
-of these days contain missing data.  
+```
+## [1] "The total number of missing step values is:  2304"
+```
+
+```r
+print(paste0("The dataset contains ",
+             length(unique(df.activity$date)), " days of data."))
+```
+
+```
+## [1] "The dataset contains 61 days of data."
+```
+
+```r
+print(paste0("Only ",sum(ddply(df.activity, ~date, summarise,
+                               sNAsum=sum(sNA))$sNAsum != 0), 
+             " of these days contain missing data."))
+```
+
+```
+## [1] "Only 8 of these days contain missing data."
+```
 
 * Therefore, a reasonable imputation strategy is to fill
 in missing data with the appropriate 5-minute interval means.
@@ -82,22 +120,36 @@ hist(Tstepsdailyimp, main='Daily steps taken (NAs replaced with time-of-day mean
 
 ![plot of chunk part4](figure/part4-1.png) 
 
-Using the **imputed data**:
+```r
+print(paste0("The mean number of daily steps taken (using imputed data) is ",
+             round(mean(Tstepsdailyimp),2)))
+```
 
-* The **mean** number of daily steps taken is **10766.19**.
+```
+## [1] "The mean number of daily steps taken (using imputed data) is 10766.19"
+```
 
-* The **median** is **10766.19**.
+```r
+print(paste0("The median number of daily steps taken (using imputed data) is ",
+             round(median(Tstepsdailyimp), 2)))
+```
 
-* Yes, the mean and median values above **do differ** 
+```
+## [1] "The median number of daily steps taken (using imputed data) is 10766.19"
+```
+
+* The mean and median values above **do differ** 
 from those of the non-imputed data.
 
     + For the **imputed** data, the days with all NA data are summarized with a total step value of the **daily mean**.
 
     + For the **non-imputed** data, the days with all NA data are summarized with a total step value of **0** (resulting from using na.rm=TRUE.)
 
-* The **imputed method is preferable to the non-imputed method** because it is unlikely that the NA data days correspond to days in which the person actually walked zero steps.
+    + From the above, we would **expect both the mean and median to increase for the imputed data**, which is indeed observed.
 
-* However, the **imputed method is not ideal**, because in adding "average days" to the data, **the sample variance is biased downward**.  
+* Because it is unlikely that the NA data days were days in which the person actually walked zero steps, the **imputed method is more likely to generate an unbiased sample mean** relative to the non-imputed method.
+
+* However, the **imputed method is not ideal**, because in replacing NA with "perfectly average days," **the sample variance is biased downward**.  
 
 
 ## 5) Are there differences in activity patterns between weekdays and weekends?
@@ -125,11 +177,11 @@ plot(as.zoo(TtimeavgWDWE), screens=c(1,2),
 
 ![plot of chunk part5](figure/part5-1.png) 
 
-Qualitative observations on the above plot:
+**There are visible differences between weekdays and weekends** on the 
+panel plot above:
 
-* Before 8:00 -- fewer steps on weekends
+* Before 8:00 -- fewer steps on weekends (perhaps due to waking up later)
 
-* 10:00am to 10:00pm -- more steps on weekends
+* 10:00am to 10:00pm -- more steps on weekends (perhaps due to being
+outside, and not sitting at a desk in an office)
 
-The data seem consistent with a person who works at a office/sedentary job 
-on weekdays, and walks more on the weekends.
