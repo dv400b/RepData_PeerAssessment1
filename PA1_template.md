@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 
 ## 1) Loading and preprocessing the data
@@ -6,19 +11,6 @@
 
 ```r
 library(xts)            # use the xts package, which facilitates time series
-```
-
-```
-## Loading required package: zoo
-## 
-## Attaching package: 'zoo'
-## 
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
-
-```r
 library(plyr)           # use the plyr package to efficiently summarize by group 
 df.activity      <- read.csv("activity.csv")
 df.activity$hour <- df.activity$interval %/% 100  # extract hour from interval 
@@ -37,7 +29,7 @@ Tstepsdaily <- apply.daily(Tsteps, sum, na.rm=TRUE)       # sum to daily time se
 hist(Tstepsdaily, main='Daily steps taken', xlab='Steps', breaks=10)
 ```
 
-![](PA1_template_files/figure-html/part2-1.png) 
+![plot of chunk part2](figure/part2-1.png) 
 
 * The **mean** number of daily steps taken is **9354.23**
 
@@ -55,7 +47,7 @@ Ttimeavg   <- xts(df.timeavg$mean, df.timeavg$datetime)   # convert to xts objec
 plot.xts(Ttimeavg, major.format="%H:%M", main="Average steps by time of day")
 ```
 
-![](PA1_template_files/figure-html/part3-1.png) 
+![plot of chunk part3](figure/part3-1.png) 
 
 * On average across all days in the dataset, the **peak 5-minute interval** is the one
 beginning at **08:35**.
@@ -88,7 +80,7 @@ Tstepsdailyimp <- apply.daily(Tstepsimp, sum)       # sum to daily time series
 hist(Tstepsdailyimp, main='Daily steps taken (NAs replaced with time-of-day means)', xlab='Steps', breaks=10)
 ```
 
-![](PA1_template_files/figure-html/part4-1.png) 
+![plot of chunk part4](figure/part4-1.png) 
 
 Using the **imputed data**:
 
@@ -131,7 +123,7 @@ plot(as.zoo(TtimeavgWDWE), screens=c(1,2),
      xlab="Time", main="Average steps by weekend status and time of day")
 ```
 
-![](PA1_template_files/figure-html/part5-1.png) 
+![plot of chunk part5](figure/part5-1.png) 
 
 Qualitative observations on the above plot:
 
