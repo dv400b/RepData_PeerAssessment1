@@ -1,15 +1,24 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## 1) Loading and preprocessing the data
 
-```{r part1, echo=TRUE}
+
+```r
 library(xts)            # use the xts package, which facilitates time series
+```
+
+```
+## Loading required package: zoo
+## 
+## Attaching package: 'zoo'
+## 
+## The following objects are masked from 'package:base':
+## 
+##     as.Date, as.Date.numeric
+```
+
+```r
 library(plyr)           # use the plyr package to efficiently summarize by group 
 df.activity      <- read.csv("activity.csv")
 df.activity$hour <- df.activity$interval %/% 100  # extract hour from interval 
@@ -22,18 +31,22 @@ Tsteps           <- xts(df.activity$steps, df.activity$datetime) # steps time se
 ```
 
 ## 2) What is mean total number of steps taken per day?
-```{r part2, echo=TRUE}
+
+```r
 Tstepsdaily <- apply.daily(Tsteps, sum, na.rm=TRUE)       # sum to daily time series, ignoring NA (per instructions)
 hist(Tstepsdaily, main='Daily steps taken', xlab='Steps', breaks=10)
 ```
 
-* The **mean** number of daily steps taken is **`r round(mean(Tstepsdaily),2)`**
+![](PA1_template_files/figure-html/part2-1.png) 
 
-* The **median** is **`r median(Tstepsdaily)`**.
+* The **mean** number of daily steps taken is **9354.23**
+
+* The **median** is **10395**.
 
 ## 3) What is the average daily activity pattern?
 
-```{r part3, echo=TRUE}
+
+```r
 df.timeavg <- ddply(df.activity, ~interval, summarise, 
                     interval=unique(interval), hour=unique(hour), min=unique(min),
                     datetime=min(datetime), mean=mean(steps, na.rm=TRUE))
@@ -42,25 +55,28 @@ Ttimeavg   <- xts(df.timeavg$mean, df.timeavg$datetime)   # convert to xts objec
 plot.xts(Ttimeavg, major.format="%H:%M", main="Average steps by time of day")
 ```
 
+![](PA1_template_files/figure-html/part3-1.png) 
+
 * On average across all days in the dataset, the **peak 5-minute interval** is the one
-beginning at **`r substr(index(Ttimeavg)[order(Ttimeavg, decreasing=TRUE)[1]], 12, 16)`**.
+beginning at **08:35**.
 
 ## 4) Imputing missing values
 
 * The total number of **missing step values** in the dataset is 
-**`r sum(is.na(df.activity$steps))`** (which is
-**`r round(100*sum(is.na(df.activity$steps))/dim(df.activity)[1],2)`%** of the total.)
+**2304** (which is
+**13.11%** of the total.)
 
-* The dataset contains `r length(unique(df.activity$date))` days of data.  
+* The dataset contains 61 days of data.  
 
 * Only
-`r sum(ddply(df.activity, ~date, summarise, sNAsum=sum(sNA))$sNAsum != 0)`
+8
 of these days contain missing data.  
 
 * Therefore, a reasonable imputation strategy is to fill
 in missing data with the appropriate 5-minute interval means.
 
-```{r part4, echo=TRUE}
+
+```r
 vmean               <- df.timeavg$mean 
 names(vmean)        <- as.character(df.timeavg$interval)  # indexed time averages
 df.activity$stepavg <- vmean[as.character(df.activity$interval)]
@@ -70,13 +86,15 @@ df.activity$stepimp[df.activity$sNA] <- df.activity$stepavg[df.activity$sNA]
 Tstepsimp      <- xts(df.activity$stepimp, df.activity$datetime) # imputed series
 Tstepsdailyimp <- apply.daily(Tstepsimp, sum)       # sum to daily time series
 hist(Tstepsdailyimp, main='Daily steps taken (NAs replaced with time-of-day means)', xlab='Steps', breaks=10)
-``` 
+```
+
+![](PA1_template_files/figure-html/part4-1.png) 
 
 Using the **imputed data**:
 
-* The **mean** number of daily steps taken is **`r format(mean(Tstepsdailyimp))`**.
+* The **mean** number of daily steps taken is **10766.19**.
 
-* The **median** is **`r format(median(Tstepsdailyimp))`**.
+* The **median** is **10766.19**.
 
 * Yes, the mean and median values above **do differ** 
 from those of the non-imputed data.
@@ -91,7 +109,8 @@ from those of the non-imputed data.
 
 
 ## 5) Are there differences in activity patterns between weekdays and weekends?
-```{r part5, echo=TRUE}
+
+```r
 # Define weekday/weekend factor
 df.activity$dayofweek <- as.character(weekdays(df.activity$datetime))
 df.activity$daytype   <- "Weekday"   #set default;  next line adjusts
@@ -111,6 +130,8 @@ TtimeavgWDWE <- xts(df.timeavgWDWE[,c("Weekdays","Weekends")],
 plot(as.zoo(TtimeavgWDWE), screens=c(1,2),
      xlab="Time", main="Average steps by weekend status and time of day")
 ```
+
+![](PA1_template_files/figure-html/part5-1.png) 
 
 Qualitative observations on the above plot:
 
